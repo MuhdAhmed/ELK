@@ -1,0 +1,56 @@
+Elasticsearch:
+
+1.  https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.3.deb
+
+2.  sysctl  -w  vm.max_map_count=262144
+
+Logstash:
+
+1.  wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+
+2.  echo "deb https://artifacts.elastic.co/packages/5.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-5.x.list
+
+3.  bin/logstash -e "input { stdin {} } output { stdout {} }"
+
+Beats config in logstash:
+
+1. https://www.elastic.co/guide/en/logstash/5.6/plugins-inputs-beats.html
+
+2. bin/logstash -f /etc/logstash/conf.d/
+
+kibana:
+
+1.  wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+
+2.  echo "deb https://artifacts.elastic.co/packages/5.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-5.x.list
+
+File Beats:
+
+1.  curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-5.6.4-x86_64.rpm
+
+2. sudo rpm -vi filebeat-5.6.4-x86_64.rpm
+
+3.  curl -H "Content-Type: application/json" -XPUT "http://35.174.19.128:9200/_template/filebeat" -d@/etc/filebeat/filebeat.template.json
+
+4.  sudo /etc/init.d/filebeat restart
+
+Winlog beats:
+1.  PS C:\Users\Administrator> cd 'C:\Program Files\Winlogbeat'
+
+2.  PS C:\Program Files\Winlogbeat> .\install-service-winlogbeat.ps1
+
+3.  PS > .\winlogbeat.exe export template --es.version 7.3.0 | Out-File -Encoding UTF8 winlogbeat.template.json
+
+4. PS > Invoke-RestMethod -Method Put -ContentType "application/json" -InFile winlogbeat.template.json -Uri http://<elasticsearch public ip>:9200/_template/winlogbeat-7.3.0
+
+5.  PS > .\winlogbeat.exe setup --dashboards
+
+6.  PS > .\winlogbeat.exe setup -e `
+-E output.logstash.enabled=false `
+-E output.elasticsearch.hosts=['<elasticsearch 
+ public ip>:9200'] `
+-E output.elasticsearch.username=winlogbeat_internal `
+-E output.elasticsearch.password=OUR_PASSWORD `
+-E setup.kibana.host=<kibana public ip>:5601
+
+7.  PS C:\Program Files\Winlogbeat> Start-Service winlogbeat
